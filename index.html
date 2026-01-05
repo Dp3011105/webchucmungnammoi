@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng Năm Mới</title>
+
+    <style>
+        /* ================= RESET & NỀN ================= */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* ================= IFRAME ================= */
+        #mainFrame {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        /* ================= OVERLAY CHUYỂN TRANG (MƯỢT) ================= */
+        #transitionOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 1);
+            z-index: 9999;
+
+            /* Quan trọng */
+            opacity: 0;
+            pointer-events: none;
+
+            /* Hiệu ứng mượt */
+            transition:
+                opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                backdrop-filter 0.55s ease;
+            
+            backdrop-filter: blur(0px);
+        }
+
+        #transitionOverlay.active {
+            opacity: 1;
+            pointer-events: all;
+            backdrop-filter: blur(2px);
+        }
+
+        /* ================= NÚT ÂM THANH ================= */
+        #audioToggle {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+
+            background: rgba(0,0,0,0.6);
+            color: #ffd700;
+            border: 1px solid #ffd700;
+
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10000;
+
+            opacity: 0.75;
+            transition: opacity 0.2s ease;
+        }
+
+        #audioToggle:hover {
+            opacity: 1;
+        }
+
+
+
+          #credit-text {
+            position: fixed; bottom: 15px; right: 20px;
+            color: rgba(255, 255, 255, 0.3); font-size: 14px; font-weight: 500;
+            z-index: 10006; pointer-events: none; user-select: none;
+            text-shadow: 0 0 2px rgba(0,0,0,0.8);
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- IFRAME -->
+    <iframe
+        id="mainFrame"
+        src="cm.html"
+        allow="camera; microphone; autoplay">
+    </iframe>
+    <div id="credit-text">TikTok: ndp312p|TikTok: dr.gìter306|TikTok: binnanee</div>
+
+    <!-- OVERLAY -->
+    <div id="transitionOverlay"></div>
+
+    <!-- AUDIO TOGGLE -->
+    <button id="audioToggle" title="Tắt / Bật nhạc">♪</button>
+
+    <script>
+        /* ================= AUDIO ================= */
+        let backgroundMusic = null;
+        let isMusicPlaying = false;
+
+        function initBackgroundMusic() {
+            backgroundMusic = new Audio();
+            backgroundMusic.src = 'audio.mp3';
+            backgroundMusic.loop = true;
+            backgroundMusic.volume = 0.4;
+            backgroundMusic.preload = 'none';
+
+            const playPromise = backgroundMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isMusicPlaying = true;
+                    audioToggle.textContent = '♪';
+                }).catch(() => {
+                    document.body.addEventListener('click', playOnInteraction, { once: true });
+                    document.body.addEventListener('touchstart', playOnInteraction, { once: true });
+                });
+            }
+        }
+
+        function playOnInteraction() {
+            if (backgroundMusic && !isMusicPlaying) {
+                backgroundMusic.play().then(() => {
+                    isMusicPlaying = true;
+                    audioToggle.textContent = '♪';
+                });
+            }
+        }
+
+        /* ================= CHUYỂN TRANG MƯỢT ================= */
+        const mainFrame = document.getElementById('mainFrame');
+        const transitionOverlay = document.getElementById('transitionOverlay');
+        const audioToggle = document.getElementById('audioToggle');
+
+        function smoothTransition(newSrc) {
+            transitionOverlay.classList.add('active');
+
+            setTimeout(() => {
+                mainFrame.src = newSrc;
+            }, 350);
+
+            setTimeout(() => {
+                transitionOverlay.classList.remove('active');
+            }, 850);
+        }
+
+        window.addEventListener('message', function (e) {
+            if (e.data === 'goto-img') {
+                smoothTransition('img.html');
+            }
+            else if (e.data === 'goto-cm') {
+                smoothTransition('cm.html');
+            }
+        });
+
+        /* ================= AUDIO TOGGLE ================= */
+        audioToggle.addEventListener('click', function () {
+            if (!backgroundMusic) {
+                initBackgroundMusic();
+                return;
+            }
+
+            if (isMusicPlaying) {
+                backgroundMusic.pause();
+                this.textContent = '🔇';
+                isMusicPlaying = false;
+            } else {
+                backgroundMusic.play().then(() => {
+                    this.textContent = '♪';
+                    isMusicPlaying = true;
+                });
+            }
+        });
+
+        /* ================= INIT ================= */
+        window.addEventListener('load', () => {
+            setTimeout(initBackgroundMusic, 500);
+            setTimeout(() => mainFrame.focus(), 1000);
+        });
+
+        mainFrame.addEventListener('load', function () {
+            this.contentWindow.focus();
+        });
+    </script>
+
+</body>
+</html>
